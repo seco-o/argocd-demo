@@ -1,0 +1,107 @@
+# =============================
+# ConfigMap - Statik HTML
+# =============================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-html
+  namespace: argocd-demo
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>ArgoCD Demo | GitOps</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <style>
+        html { scroll-behavior: smooth; }
+      </style>
+    </head>
+    <body class="bg-slate-950 text-slate-100">
+
+      <header class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <h1 class="text-xl font-bold text-indigo-400">ArgoCD Demo</h1>
+          <nav class="space-x-6 text-sm">
+            <a href="#about" class="hover:text-indigo-400">GitOps</a>
+            <a href="#architecture" class="hover:text-indigo-400">Mimari</a>
+            <a href="#deploy" class="hover:text-indigo-400">Deploy</a>
+          </nav>
+        </div>
+      </header>
+
+      <section class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-cyan-500/20"></div>
+        <div class="relative max-w-7xl mx-auto px-6 py-32 text-center">
+          <h2 class="text-5xl font-extrabold tracking-tight mb-6">
+            GitOps ile <span class="text-indigo-400">Otomatik</span> Deployment
+          </h2>
+          <p class="max-w-2xl mx-auto text-slate-300 text-lg mb-10">
+            Bu uygulama ArgoCD kullanılarak Git üzerinden otomatik olarak Kubernetes ortamına deploy edilmiştir.
+          </p>
+        </div>
+      </section>
+
+      <section id="about" class="max-w-7xl mx-auto px-6 py-24">
+        <h3 class="text-3xl font-bold mb-4">GitOps Nedir?</h3>
+        <p class="text-slate-300">
+          GitOps, altyapı ve uygulama konfigürasyonlarının tek doğruluk kaynağı olarak Git repository'lerini kullanan bir yaklaşımdır.
+        </p>
+      </section>
+
+      <footer class="border-t border-slate-800 bg-slate-950">
+        <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm text-slate-500">
+          ArgoCD GitOps Demo • Kubernetes • Static Web
+        </div>
+      </footer>
+
+    </body>
+    </html>
+---
+# =============================
+# Deployment
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-web
+  namespace: argocd-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-web
+  template:
+    metadata:
+      labels:
+        app: static-web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: html
+          configMap:
+            name: demo-html
+---
+# =============================
+# Service
+# =============================
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-web
+  namespace: argocd-demo
+spec:
+  selector:
+    app: static-web
+  ports:
+    - port: 80
+      targetPort: 80
