@@ -119,5 +119,5 @@ spec:
   selector:
     app: static-web
   ports:
-    - port: 80
+    - port: 81
       targetPort: 80
